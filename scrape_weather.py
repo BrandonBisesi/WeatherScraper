@@ -1,21 +1,26 @@
 """Module containing HTMLParser for getting the all the daily weather from climate.weather.gc.ca"""
 from html.parser import HTMLParser
 import urllib.request
-from datetime import datetime
+import datetime
+import weakref
 
 class WeatherScraper(HTMLParser):
   """HTML Parser to get the daily weather from climate.weather.gc.ca"""
-  title_flag = False
-  row_flag = False
-  date_flag = False
-  temp_flag = False
-  count = 0
-  max = 0
-  min = 0
-  mean = 0
-  month_year = ""
-  date = ""
-  weather = {}
+  def __init__(self,year,month):
+    super().__init__()
+    self.title_flag = False
+    self.row_flag = False
+    self.date_flag = False
+    self.temp_flag = False
+    self.count = 0
+    self.max = 0
+    self.min = 0
+    self.mean = 0
+    self.month_year = ""
+    self.year = year
+    self.month = month
+    self.date = ""
+    self.weather = {}
 
   def handle_starttag(self, tag, attrs):
     try:
@@ -32,7 +37,7 @@ class WeatherScraper(HTMLParser):
             self.row_flag = True
           if self.row_flag and "title" in attr:
             if str(attr[1]) != "Average" and str(attr[1]) != "Extreme":
-              d = datetime.strptime(str(attr[1]), '%B %d, %Y')
+              d = datetime.datetime.strptime(str(attr[1]), '%B %d, %Y')
               self.date = (d.strftime('%Y-%m-%d'))
               self.date_flag = True
 
@@ -71,12 +76,16 @@ class WeatherScraper(HTMLParser):
         print("Error reading data", e)
 
 
-weather_scraper = WeatherScraper()
+today = datetime.datetime.today()
+year = int(today.year)
+month = int(today.month)
+weather_scraper = WeatherScraper(year, month)
 
-with urllib.request.urlopen('https://climate.weather.gc.ca/climate_data/daily_data_e.html?StationID=27174&timeframe=2&StartYear=1840&EndYear=2018&Day=1&Year=2022&Month=3#') as response:
-    html = str(response.read())
+# month_date = datetime.date(weather_scraper.year, weather_scraper.month, 1).strftime('%B %Y')
+with urllib.request.urlopen(f'https://climate.weather.gc.ca/climate_data/daily_data_e.html?StationID=27174&timeframe=2&StartYear=1840&EndYear=2018&Day=1&Year={weather_scraper.year}&Month={weather_scraper.month}#') as response:
+  html = str(response.read())
 
-# weather_scraper.feed(html)
-# # print(weather_scraper.month_year)
-# # print(weather_scraper.weather)
+weather_scraper.feed(html)
+
+print(weather_scraper.weather)
 
