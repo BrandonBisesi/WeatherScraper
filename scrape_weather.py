@@ -90,6 +90,7 @@ class WeatherScraper(HTMLParser):
         print("Error reading data", e)
 
   def get_weather(self,month,year):
+    """Gets the weatherfrom climate.weather.gc.ca using the input month and year"""
     try:
       self.input = datetime.date(year, month, 1).strftime('%B %Y')
       with urllib.request.urlopen(f'https://climate.weather.gc.ca/climate_data/daily_data_e.html?StationID=27174&timeframe=2&StartYear=1840&EndYear=2022&Day=1&Year={year}&Month={month}#') as response:
