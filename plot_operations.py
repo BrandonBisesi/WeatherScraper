@@ -1,13 +1,15 @@
+"""Module containing a class for plotting weather data."""
 from db_operations import DBOperations
 import matplotlib.pyplot as plt
 from dateutil import parser
 import logging
 
 class PlotOperations:
-
+    """Class to create plots for weather data."""
     logger = logging.getLogger(f"main.{__name__}")
 
     def get_monthly(self,date):
+        """Creates a plot for a month of weather data."""
         try:
             db = DBOperations()
             results = db.fetch_data(date)
@@ -24,6 +26,7 @@ class PlotOperations:
             self.logger.error(f"PlotOperations:get_monthly:{error}")
 
     def get_range(self, start_year, end_year):
+        """Creates a box plot for years of weather data."""
         try:
             years = range(start_year,end_year+1)
             weather_dict = {}

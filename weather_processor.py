@@ -1,4 +1,4 @@
-
+"""Module containing WeatherProcessor class and user interface."""
 from db_operations import DBOperations
 from scrape_weather import WeatherScraper
 from plot_operations import PlotOperations
@@ -6,24 +6,28 @@ import datetime
 import logging
 
 class WeatherProcessor:
+    """Weather Processor class for using the WeatherScraper and DBOperations"""
 
     logger = logging.getLogger(f"main.{__name__}")
 
-    def __init__(self,):
+    def __init__(self):
         self.db = DBOperations()
         self.db.initialize_db()
 
     def update(self):
+        """Calls the get method with the most recent date in the db."""
         date = self.db.get_recent_date()
         d = datetime.datetime.strptime(str(date), '%Y-%m-%d')
         month_year = (d.strftime('%B %Y'))
         self.get(month_year)
 
     def full_update(self):
+        """Purges the db then call the get method."""
         self.db.purge_data()
         self.get()
 
     def get(self, end = None):
+        """Gets all the data using the WeatherScraper and saves it to the db."""
         today = datetime.datetime.today()
         year = int(today.year)
         month = int(today.month)
