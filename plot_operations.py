@@ -1,54 +1,63 @@
 from db_operations import DBOperations
 import matplotlib.pyplot as plt
 from dateutil import parser
+import logging
 
 class PlotOperations:
-    def __init__(self):
-        pass
+
+    logger = logging.getLogger(f"main.{__name__}")
 
     def get_monthly(self,date):
-        results = DBOperations.fetch_data(date)
+        try:
+            db = DBOperations()
+            results = db.fetch_data(date)
 
-        mean_temps = [record[5] for record in results]
-        timestamps = [parser.parse(record[1]) for record in results]
+            mean_temps = [record[5] for record in results]
+            timestamps = [parser.parse(record[1]) for record in results]
 
-        plt.plot(timestamps, mean_temps)
-        plt.title("Average Daily Temperatures")
-        plt.ylabel('Temperature (Celcius)')
-        plt.xlabel('Date')
-        plt.show()
+            plt.plot(timestamps, mean_temps)
+            plt.title(f"Average Daily Temperatures for {date}")
+            plt.ylabel('Temperature (Celcius)')
+            plt.xlabel('Date')
+            plt.show()
+        except Exception as error:
+            self.logger.error(f"PlotOperations:get_monthly:{error}")
 
+    def get_range(self, start_year, end_year):
+        try:
+            years = range(start_year,end_year+1)
+            weather_dict = {}
+            db = DBOperations()
+            for month in range(1,13):
+                weather_dict[month] = []
 
+            for year in years:
+                try:
+                    temps = db.fetch_data(str(year))
 
-    def get_range(self, start, end):
-        years = range(start,end+1)
-        weather_dict = {}
+                    for temp in temps:
+                        try:
+                            month = (str((temp[1])[5:7]))
+                            mean_temp = temp[5]
+                            weather_dict[int(month)].append(mean_temp)
 
-        for month in range(1,13):
-            weather_dict[month] = []
+                        except Exception as error:
+                            self.logger.error(f"PlotOperations:get_range:month {month}:{error}")
 
-        for year in years:
-            temps = DBOperations.fetch_data(str(year))
-            for temp in temps:
-                month = (str((temp[1])[5:7]))
-
-                mean_temp = temp[5]
-                weather_dict[int(month)].append(mean_temp)
-
-        data_list = []
-        for month in weather_dict:
-            spread = list(filter(None,weather_dict[month]))
-            data_list.append(spread)
-            print(spread)
-
-        plt.boxplot(data_list)
-        plt.title(f"Monthly Temperature Distribution for: {start} to {end}")
-        plt.ylabel('Temperature (Celcius)')
-        plt.xlabel('Month')
-        plt.show()
+                except Exception as error:
+                    self.logger.error(f"PlotOperations:get_range:year {year}:{error}")
 
 
-# p = PlotOperations()
+            data_list = []
+            for month in weather_dict:
+                spread = list(filter(None,weather_dict[month]))
+                data_list.append(spread)
 
-# p.get_monthly("2021-12")
-# p.get_range(2000,2017)
+            plt.boxplot(data_list)
+            plt.title(f"Monthly Temperature Distribution for: {start_year} to {end_year}")
+            plt.ylabel('Temperature (Celcius)')
+            plt.xlabel('Month')
+            plt.show()
+
+        except Exception as error:
+            self.logger.error(f"PlotOperations:get_range:{error}")

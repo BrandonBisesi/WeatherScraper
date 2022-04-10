@@ -2,23 +2,31 @@
 from html.parser import HTMLParser
 import urllib.request
 import datetime
+import logging
 
 class WeatherScraper(HTMLParser):
     """HTML Parser to get the daily weather from climate.weather.gc.ca"""
+
+    logger = logging.getLogger(f"main.{__name__}")
+
     def __init__(self):
-        super().__init__()
-        self.end_of_dates = False
-        self.title_flag = False
-        self.row_flag = False
-        self.date_flag = False
-        self.temp_flag = False
-        self.count = 0
-        self.max = 0
-        self.min = 0
-        self.mean = 0
-        self.input = ""
-        self.date = ""
-        self.weather = {}
+        """Init method"""
+        try:
+            super().__init__()
+            self.end_of_dates = False
+            self.title_flag = False
+            self.row_flag = False
+            self.date_flag = False
+            self.temp_flag = False
+            self.count = 0
+            self.max = 0
+            self.min = 0
+            self.mean = 0
+            self.input = ""
+            self.date = ""
+            self.weather = {}
+        except Exception as error:
+            self.logger.error(f"WeatherScraper:init:{error}")
 
     def handle_starttag(self, tag, attrs):
         try:
@@ -42,12 +50,13 @@ class WeatherScraper(HTMLParser):
                                     self.date_flag = True
                                 except Exception as error:
                                     print("Error getting date", error)
+                                    self.logger.error(f"WeatherScraper:handle_starttag:error_getting_date:{error}")
                             self.row_flag = False
 
                     except Exception as error:
-                        print("Error reading attribute of start tag", error)
+                        print(f"WeatherScraper:handle_starttag:{attr}:{error}")
         except Exception as error:
-            print("Error reading start tag", error)
+            self.logger.error(f"WeatherScraper:handle_starttag:{error}")
 
     def handle_data(self, data):
         try:
@@ -85,7 +94,7 @@ class WeatherScraper(HTMLParser):
                     self.weather[self.date] = daily_temps
 
         except Exception as error:
-            print("Error reading data", error)
+            self.logger.error(f"WeatherScraper:handle_data:{error}")
 
     def get_weather(self,month,year):
         """Gets the weatherfrom climate.weather.gc.ca using the input month and year"""
@@ -96,4 +105,4 @@ class WeatherScraper(HTMLParser):
             self.feed(html)
             return self.weather
         except Exception as error:
-            print("Error getting weather", error)
+            self.logger.error(f"WeatherScraper:get_weather:{error}")
