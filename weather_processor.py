@@ -1,6 +1,7 @@
 """Module containing WeatherProcessor class and user interface."""
 import datetime
 import logging
+import logging.handlers
 from db_operations import DBOperations
 from scrape_weather import WeatherScraper
 from plot_operations import PlotOperations
@@ -11,7 +12,7 @@ class WeatherProcessor:
     def __init__(self):
         self.db = DBOperations()
         self.db.initialize_db()
-        self.logger = logging.getLogger(f"main.{__name__}")
+        self.logger = logging.getLogger(__name__)
         self.logger.info("Weather Processor Started")
 
     def prompt_user(self):
@@ -119,7 +120,20 @@ class WeatherProcessor:
         except Exception as error:
             self.logger.error("get:%s",error)
 
+def main_log():
+    """Creates the logger."""
+    try:
+        logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", filename='file.log')
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)
+
+        logger.info("Main Started")
+
+        proc = WeatherProcessor()
+        proc.prompt_user()
+
+    except Exception as error:
+        logger.error("main_log:%s",error)
 
 if __name__ == '__main__':
-    weather_processor = WeatherProcessor()
-    weather_processor.prompt_user()
+    main_log()
