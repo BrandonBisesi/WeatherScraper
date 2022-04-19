@@ -1,13 +1,12 @@
 """Contains DBOperations class for the database operations in the weather database"""
-from dbcm import DBCM
 import logging
-import datetime
-from scrape_weather import WeatherScraper
+from dbcm import DBCM
 
 class DBOperations:
     """Database operations for the weather database"""
 
-    logger = logging.getLogger(f"main.{__name__}")
+    def __init__(self):
+        self.logger = logging.getLogger(f"main.{__name__}")
 
     def fetch_data(self, date):
         """Fetch data from weather table using the data."""
@@ -20,7 +19,21 @@ class DBOperations:
                 result = cursor.fetchall()
             return tuple(result)
         except Exception as error:
-            self.logger.error(f"DBOperations:fetch_data:{error}")
+            self.logger.error("DBOperations:fetch_data:%s",error)
+            return None
+
+    def fetch_range(self,start_year, end_year):
+        """Fetch data from weather table using the data."""
+        try:
+            result = None
+            with DBCM() as cursor:
+                sql = """select * from weather where sample_date BETWEEN ? and ?"""
+                values = (start_year,end_year)
+                cursor.execute(sql,values)
+                result = cursor.fetchall()
+            return tuple(result)
+        except Exception as error:
+            self.logger.error("DBOperations:fetch_data:%s",error)
             return None
 
     def save_data(self, weather_dict):
@@ -35,10 +48,9 @@ class DBOperations:
                                     weather_dict[data]["Max"], weather_dict[data]["Mean"])
                         cursor.execute(sql, values)
                     except Exception as error:
-                        print("Error inserting data.", error)
-                        self.logger.error(f"DBOperations:save_data:{data}:{error}")
+                        self.logger.error("DBOperations:save_data:%s:%s",data,error)
         except Exception as error:
-            self.logger.error(f"DBOperations:save_data:{error}")
+            self.logger.error("DBOperations:save_data:%s",error)
 
     def initialize_db(self):
         """Initializes weather table."""
@@ -52,7 +64,7 @@ class DBOperations:
                                 max_temp real,
                                 avg_temp real);""")
         except Exception as error:
-            self.logger.error(f"DBOperations:initialize_db:{error}")
+            self.logger.error("DBOperations:initialize_db:%s",error)
 
     def purge_data(self):
         """Deletes all data from weather table."""
@@ -60,7 +72,7 @@ class DBOperations:
             with DBCM() as cursor:
                 cursor.execute("""delete from weather""")
         except Exception as error:
-            self.logger.error(f"DBOperations:purge_data:{error}")
+            self.logger.error("DBOperations:purge_data:%s",error)
 
 
     def get_recent_date(self):
@@ -71,4 +83,4 @@ class DBOperations:
                 date = cursor.fetchone()
                 return date[0]
         except Exception as error:
-            self.logger.error(f"DBOperations:get_recent_date:{error}")
+            self.logger.error("DBOperations:get_recent_date:%s",error)

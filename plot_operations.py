@@ -1,12 +1,14 @@
 """Module containing a class for plotting weather data."""
-from db_operations import DBOperations
+import logging
 import matplotlib.pyplot as plt
 from dateutil import parser
-import logging
+from db_operations import DBOperations
 
 class PlotOperations:
     """Class to create plots for weather data."""
-    logger = logging.getLogger(f"main.{__name__}")
+
+    def __init__(self):
+        self.logger = logging.getLogger(f"main.{__name__}")
 
     def get_monthly(self,date):
         """Creates a plot for a month of weather data."""
@@ -21,34 +23,29 @@ class PlotOperations:
             plt.title(f"Average Daily Temperatures for {date}")
             plt.ylabel('Temperature (Celcius)')
             plt.xlabel('Date')
+            self.logger.info("Open Plot")
             plt.show()
         except Exception as error:
-            self.logger.error(f"PlotOperations:get_monthly:{error}")
+            self.logger.error("PlotOperations:get_monthly:%s",error)
 
     def get_range(self, start_year, end_year):
         """Creates a box plot for years of weather data."""
         try:
-            years = range(start_year,end_year+1)
             weather_dict = {}
             db = DBOperations()
             for month in range(1,13):
                 weather_dict[month] = []
 
-            for year in years:
+            temps = db.fetch_range(start_year, end_year)
+
+            for temp in temps:
                 try:
-                    temps = db.fetch_data(str(year))
-
-                    for temp in temps:
-                        try:
-                            month = (str((temp[1])[5:7]))
-                            mean_temp = temp[5]
-                            weather_dict[int(month)].append(mean_temp)
-
-                        except Exception as error:
-                            self.logger.error(f"PlotOperations:get_range:month {month}:{error}")
+                    month = (str((temp[1])[5:7]))
+                    mean_temp = temp[5]
+                    weather_dict[int(month)].append(mean_temp)
 
                 except Exception as error:
-                    self.logger.error(f"PlotOperations:get_range:year {year}:{error}")
+                    self.logger.error("PlotOperations:get_range:month %s:%s",month,error)
 
 
             data_list = []
@@ -60,7 +57,8 @@ class PlotOperations:
             plt.title(f"Monthly Temperature Distribution for: {start_year} to {end_year}")
             plt.ylabel('Temperature (Celcius)')
             plt.xlabel('Month')
+            self.logger.info("Open Box Plot")
             plt.show()
 
         except Exception as error:
-            self.logger.error(f"PlotOperations:get_range:{error}")
+            self.logger.error("PlotOperations:get_range:%s",error)
