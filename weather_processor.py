@@ -1,7 +1,6 @@
 """Module containing WeatherProcessor class and user interface."""
 import datetime
 import logging
-import logging.handlers
 from db_operations import DBOperations
 from scrape_weather import WeatherScraper
 from plot_operations import PlotOperations
